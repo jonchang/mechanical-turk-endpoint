@@ -1,27 +1,37 @@
 <?php
 
-function parse_config_file ($filename) {
-    $trials = array();
-    if (($handle = fopen('config.txt', 'r') !== false) {
-        # Name, Path, How many iterations, how many replicates
-        # Total number of hits will be #iterations * #replicates
-        while (($row = fgetcsv($handle, 1000, "\t")) !== false) {
-            $trials[$row[0]] = array(
-                'loc' => realpath($row[1]),
-                'cnt' => intval($row[2]),
-                'rep' => intval($row[3]),
-            );
+header('Content-type: text/plain');
+
+function parse_tsv_file ($filename) {
+    $rows = file($filename, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    $result = array();
+    if ($rows) {
+        $columns = explode("\t", array_shift($rows));
+        foreach ($rows as $row) {
+            $split = explode("\t", $row);
+            $result[] = array_combine($columns, explode("\t", $row));
         }
-        return $trials;
     }
-    return false;
+    return $result;
 }
 
-$trials = parse_config_file("config.txt");
+# Passed from MTurk:
+# www.example.com/?hitId=2384239&assignmentId=ASD98ASDFADJKH&workerId=ASDFASD8
+
+$trials = parse_ini_file("config.ini", true, INI_SCANNER_RAW);
+
+if (isset($_GET['hitId']) && isset($_GET['assignmentId']) && isset($_GET['workerId'])) {
+    # this is an Mturk assignment
+    # sanitize workerId
+    print_r(preg_replace('/\W/', "_", $_GET['workerId']));
+    # log data (sqlite?)
+}
+
 
 if (isset($_GET['trial']) and isset($trials[$_GET['trial']])) {
     $current = $trials[$_GET['trial']];
-    echo file_get_contents($current['loc']);
+    $params = parse_tsv_file($current['file']);
+    $to_redirect = $current['endpoint'] . '?' . http_build_query($params[0]);
 } else {
     echo "No trial set.";
 }
