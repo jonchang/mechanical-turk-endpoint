@@ -3,6 +3,8 @@ SHELL := /bin/bash
 
 DEFAULT = make help
 
+DEPLOY_FILES = .htaccess *.php *.input *.ini
+
 all:
 	$(DEFAULT)
 
@@ -17,3 +19,6 @@ help:
 serve: index.php
 	php -S localhost:9000 &
 	open "http://localhost:9000"
+
+deploy: deploy_string
+	rsync -av $(DEPLOY_FILES) `cat deploy_string`
