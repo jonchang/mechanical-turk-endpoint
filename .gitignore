@@ -1,1 +1,5 @@
 deploy_target
+config.ini
+log.txt
+*.sqlite
+*.input

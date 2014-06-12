@@ -1,7 +1,7 @@
 # Patterned after Rust-Empty <https://github.com/bvssvni/rust-empty>, MIT License.
 SHELL := /bin/bash
 
-DEFAULT = make help
+DEFAULT = help
 
 DEPLOY_FILES = .htaccess *.php *.input *.ini
 
@@ -35,3 +35,6 @@ setup-deploy:
 
 deploy: deploy_target
 	rsync -av $(DEPLOY_FILES) `cat deploy_target`
+
+fetch: deploy_target
+	rsync -av `cat deploy_target`*.sqlite
