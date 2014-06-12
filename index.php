@@ -37,13 +37,11 @@ msg_array($_POST, 'POST: ');
 # Instantiate new SQLite connection.
 $db = new SQLitePDO(preg_replace("/\W/", '', $trial));
 
-
 if (isset($_POST['assignmentId'])) {
-    # This is an MTurk postback to us. Unmangle the sequence ID as well.
+    # This is an MTurk postback to us. Unmangle the sequence ID.
     preg_match("/(\w+)__(\d+)/", $_POST['assignmentId'], $matches);
     unset($_POST['assignmentId']);
-    $assignment = $matches[1];
-    $sequence = $matches[2];
+    list(, $assignment, $sequence) = $matches;
     $answers = json_encode($_POST);
 
     $db->add_result($assignment, $answers, $sequence);
