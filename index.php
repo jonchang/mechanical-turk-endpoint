@@ -47,9 +47,7 @@ if (isset($_POST['assignmentId'])) {
     $answers = json_encode($_POST);
 
     $db->add_result($assignment, $answers, $sequence);
-}
-
-if (isset($_GET['hitId']) && isset($_GET['assignmentId']) && isset($_GET['workerId']) && isset($_GET['turkSubmitTo'])) {
+} else if (isset($_GET['hitId']) && isset($_GET['assignmentId']) && isset($_GET['workerId']) && isset($_GET['turkSubmitTo'])) {
     # This is an initial MTurk assignment. So we need to potentially generate a new plan.
     # sanitize all inputs
     $worker = preg_replace("/\W/", '', $_GET['workerId']);
@@ -69,6 +67,8 @@ if (isset($_GET['hitId']) && isset($_GET['assignmentId']) && isset($_GET['worker
 
         $db->add_plan($assignment, $trial, $hit, $worker, $submitto, $plan);
     }
+} else {
+    die("assignment id not set");
 }
 
 # Direct people to the next step.
