@@ -162,9 +162,17 @@ class SQLitePDO extends PDO {
     }
 
     function get_all_results($assignment) {
-        $res = $this->exec1('SELECT result FROM log WHERE assignmentId = ? AND type="completed"', array($assignment), PDO::FETCH_NUM);
-        $ret = array_values($res);
-        return json_encode((array) $ret);
+        $plan = $this->get_plan($assignment);
+        $res = $this->exec1('SELECT sequence, result FROM log WHERE assignmentId = ? AND type="completed"', array($assignment), PDO::FETCH_ASSOC);
+        $ret = array();
+        foreach ($res as $key => $value) {
+            $ret[] = array(
+                "sequence" => $value['sequence'],
+                "result" => $value['result'],
+                "plan" => $plan[$value['sequence']]
+            );
+        }
+        return json_encode($ret);
     }
 }
 
