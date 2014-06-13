@@ -65,8 +65,13 @@ if (isset($_POST['assignmentId'])) {
 
         $db->add_plan($assignment, $trial, $hit, $worker, $submitto, $plan);
     }
-} else {
-    die("assignment id not set");
+} else if (isset($_GET['hitId']) && $_GET['assignmentId'] == 'ASSIGNMENT_ID_NOT_AVAILABLE') {
+    # This is an MTurk preview. Just direct them to the endpoint in config.ini
+    # and slap on all of the other query parameters.
+    $qs = http_build_query($_GET);
+    header("Location: $current[endpoint]?$qs");
+    msg("MTurk preview [$trial]: hitId=$_GET[hitId]");
+    exit;
 }
 
 # Direct people to the next step.
