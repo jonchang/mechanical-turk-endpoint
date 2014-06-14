@@ -13,6 +13,7 @@ help:
 	@echo "make help         - show this help"
 	@echo "make serve        - starts a PHP server and opens it in the browser"
 	@echo "make deploy       - deploy files using rsync"
+	@echo "make fetch        - fetches sqlite files using rsync"
 	@echo "make setup-deploy - sets up deployment with rsync"
 
 .PHONY: clean setup-deploy
