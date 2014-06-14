@@ -3,6 +3,25 @@ fake-mechanical-turk
 
 Acts like an Amazon Mechanical Turk endpoint but does some other neat stuff on top of that.
 
+Requirements
+------------
+* PHP 5.4 compiled with SQLite support
+* Apache 2.2 (recommended)
+
+Installation
+------------
+
+```sh
+git clone https://github.com/jonchang/fake-mechanical-turk
+cd fake-mechanical-turk
+make help
+make setup-rsync
+vim rsync_target
+make deploy
+```
+
+
+
 Use cases
 ---------
 
