@@ -1,4 +1,4 @@
-deploy_target
+rsync_target
 config.ini
 log.txt
 *.sqlite

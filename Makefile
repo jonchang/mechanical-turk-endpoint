@@ -14,28 +14,28 @@ help:
 	@echo "make serve        - starts a PHP server and opens it in the browser"
 	@echo "make deploy       - deploy files using rsync"
 	@echo "make fetch        - fetches sqlite files using rsync"
-	@echo "make setup-deploy - sets up deployment with rsync"
+	@echo "make setup-rsync  - sets up rsync deployment and download"
 
-.PHONY: clean setup-deploy
+.PHONY: clean setup-rsync
 
 serve: index.php
 	php -S localhost:9000 &
 	open "http://localhost:9000"
 
-setup-deploy:
+setup-rsync:
 	@( \
-		test -e deploy_target \
-		&& echo "--- The file 'deploy_target' already exists" \
+		test -e rsync_target \
+		&& echo "--- The file 'rsync_target' already exists" \
 	) \
 	|| \
 	( \
-		echo -e "user@example.com:public_html/" > deploy_target \
-		&& echo "--- Created 'deploy_target' for rsync deployment: " \
-		&& cat deploy_target \
+		echo -e "user@example.com:public_html/" > rsync_target \
+		&& echo "--- Created 'rsync_target' for rsync deployment: " \
+		&& cat rsync_target \
 	)
 
-deploy: deploy_target
-	rsync -av $(DEPLOY_FILES) `cat deploy_target`
+deploy: rsync_target
+	rsync -av $(DEPLOY_FILES) `cat rsync_target`
 
-fetch: deploy_target
-	rsync -av `cat deploy_target`*.sqlite
+fetch: rsync_target
+	rsync -av `cat rsync_target`*.sqlite
