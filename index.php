@@ -3,14 +3,8 @@
 define('FAKE_MTURK', 1);
 require_once("functions.php");
 
-# comment this out in production, lol
-error_reporting(E_ALL|E_STRICT);
-
 # Passed from MTurk:
 # https://dl.dropboxusercontent.com/u/8859543/build/index.html?url=https%3A%2F%2Fdl.dropboxusercontent.com%2Fu%2F8859543%2Ffishpics%2FChelmonops_truncatus.jpg&assignmentId=3O6CYIULED1J2V0HZWG64GCRLFFWUU&hitId=3R16PJFTS3RR3DFR5A1JFHPKETXK4N&workerId=AKUM1FLS9WBYZ&turkSubmitTo=https%3A%2F%2Fworkersandbox.mturk.com
-
-# comment this out later, lol
-#header('Content-type: text/plain');
 
 if (!isset($_GET['p'])) {
     die("No trial set.");
