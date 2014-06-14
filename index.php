@@ -102,9 +102,10 @@ if (array_key_exists($next_plan_seq, $plan)) {
     $qst = http_build_query($qsa);
     $next_url = "$current[endpoint]?$qst";
     $db->append_log($assignment, $next_plan_seq, 'assigned', null);
+
     # Use a meta refresh so people can watch their progress.
     $head .= '<meta http-equiv="refresh" content="2; url=' . htmlspecialchars($next_url, ENT_QUOTES) . '">';
-    $body .= "Assigning task $next_plan_seq of $n_plan, redirecting you in 2 seconds...<br>";
+    $body .= "$next_plan_seq of $n_plan tasks complete, redirecting you in 2 seconds...<br>";
     $body .= '<a href="' . htmlspecialchars($next_url, ENT_QUOTES) . '">click here if you are not redirected</a>';
 } else {
     # Nothing left in our plan, so let's batch it up and post it to Amazon.
