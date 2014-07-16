@@ -10,6 +10,17 @@ if (!isset($_GET['p'])) {
     die("No trial set.");
 }
 
+if (!isset($_GET['assignmentId']) && !isset($_POST['assignmentId'])) {
+    # Non-MTurk entry, so generate a random assignmentId and hitId
+    $_GET['assignmentId'] = sprintf("%06x", mt_rand(0, 0xffffff));
+    $_GET['hitId'] = sprintf("%06x", mt_rand(0, 0xffffff));
+    if (!isset($_GET['workerId']) && !isset($_POST['workerId'])) {
+        # Use IP for worker ID
+        $_GET['workerId'] = $_SERVER['REMOTE_ADDR'];
+    }
+    $_GET['turkSubmitTo'] = ""; # Can't think of a good place...
+}
+
 $path = $_GET['p'];
 $trial = preg_replace('/\/mturk\/externalSubmit$/', '', $path);
 $trial = preg_replace("/\W/", '', $trial);
