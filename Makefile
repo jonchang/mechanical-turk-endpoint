@@ -51,4 +51,4 @@ deploy: rsync_target
 	rsync -av $(DEPLOY_FILES) `cat rsync_target`
 
 fetch: rsync_target
-	rsync -av `cat rsync_target`*.sqlite
+	rsync -av `cat rsync_target`*.sqlite .
