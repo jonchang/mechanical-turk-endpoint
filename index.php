@@ -128,7 +128,8 @@ if (array_key_exists($next_plan_seq, $plan)) {
 
     $body .= "All $n_plan tasks complete!";
     $body .= '<form method="post" action="' . htmlspecialchars($submitto, ENT_QUOTES) . '">';
-    $body .= '<input type="hidden" name="allresults" value="' . htmlspecialchars($allresults, ENT_QUOTES) . '">';
+    $body .= '<input type="hidden" name="__allresults" value="' . htmlspecialchars($allresults, ENT_QUOTES) . '">';
+    $body .= '<input type="hidden" name="__plan" value="' . htmlspecialchars(json_encode($plan), ENT_QUOTES) . '">';
     $body .= '<input type="hidden" name="assignmentId" value="' . htmlspecialchars($assignment, ENT_QUOTES) . '">';
     $body .= '<input type="submit" value="Submit my results">';
 }
