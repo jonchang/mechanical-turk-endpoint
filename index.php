@@ -19,6 +19,7 @@ if (!isset($_GET['assignmentId']) && !isset($_POST['assignmentId'])) {
     }
     $_GET['assignmentId'] = md5($_GET['workerId']);
     $_GET['hitId'] = md5($_GET['assignmentId']);
+    $_GET['turkSubmitTo'] = "http://$_SERVER[HTTP_HOST]/success.php";
 }
 
 $path = $_GET['p'];
