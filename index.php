@@ -131,6 +131,7 @@ if (array_key_exists($next_plan_seq, $plan)) {
     $body .= '<input type="hidden" name="__allresults" value="' . htmlspecialchars($allresults, ENT_QUOTES) . '">';
     $body .= '<input type="hidden" name="__plan" value="' . htmlspecialchars(json_encode($plan), ENT_QUOTES) . '">';
     $body .= '<input type="hidden" name="assignmentId" value="' . htmlspecialchars($assignment, ENT_QUOTES) . '">';
+    $body .= '<input type="hidden" name="workerId" value="' . htmlspecialchars($worker, ENT_QUOTES) . '">';
     $body .= '<input type="submit" value="Submit my results">';
 }
 
