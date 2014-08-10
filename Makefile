@@ -3,7 +3,7 @@ SHELL := /bin/bash
 
 DEFAULT = help
 
-DEPLOY_FILES = .htaccess *.php *.input *.ini
+DEPLOY_FILES = .htaccess *.php *.input
 
 all:
 	$(DEFAULT)

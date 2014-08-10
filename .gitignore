@@ -1,5 +1,5 @@
 rsync_target
-config.ini
+config.php
 log.txt
 *.sqlite
 *.input

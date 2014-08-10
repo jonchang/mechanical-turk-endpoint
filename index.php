@@ -2,6 +2,7 @@
 
 define('FAKE_MTURK', 1);
 require_once("functions.php");
+require_once("config.php");
 
 # Passed from MTurk:
 # https://dl.dropboxusercontent.com/u/8859543/build/index.html?url=https%3A%2F%2Fdl.dropboxusercontent.com%2Fu%2F8859543%2Ffishpics%2FChelmonops_truncatus.jpg&assignmentId=3O6CYIULED1J2V0HZWG64GCRLFFWUU&hitId=3R16PJFTS3RR3DFR5A1JFHPKETXK4N&workerId=AKUM1FLS9WBYZ&turkSubmitTo=https%3A%2F%2Fworkersandbox.mturk.com
@@ -29,7 +30,6 @@ if (!preg_match('/^\w+$/', $trial)) {
     die('bad trial specified');
 }
 
-$trials = parse_ini_file('config.ini', true, INI_SCANNER_RAW);
 if (!isset($trials[$trial])) {
     die("trial doesn't exist in config");
 }
