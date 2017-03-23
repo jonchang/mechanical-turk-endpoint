@@ -65,9 +65,17 @@ if (isset($_POST['assignmentId'])) {
     $plan = $db->get_plan($assignment);
     if (!$plan) {
         # We don't have a plan, so generate a plan.
-        $shuffled = array_slice_assoc($params, array_rand($params, $current['count']));
-        $plan = array_repeat($shuffled, $current['replicates']);
-
+        # Shuffle in place first
+        shuffle($params);
+        # Sanity check that we don't have too many elements
+        if ($current['count'] <= count($params)) {
+            $shuffled = array_slice($params, 0, $current['count'], true);
+            $plan = array_repeat($shuffled, $current['replicates']);
+        } else {
+            http_response_code(500);
+            msg("Server error: trial $trial has too many entries ${current['count']}");
+            exit;
+        }
         $db->add_plan($assignment, $trial, $hit, $worker, $submitto, $plan);
     }
 } else if (isset($_GET['hitId']) && $_GET['assignmentId'] == 'ASSIGNMENT_ID_NOT_AVAILABLE') {
