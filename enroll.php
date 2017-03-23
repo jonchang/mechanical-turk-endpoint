@@ -24,7 +24,7 @@ if (!isset($trials[$trial])) {
 
 $current = $trials[$trial];
 
-$url = "http://$_SERVER[HTTP_HOST]/$trial";
+$url = "//$_SERVER[HTTP_HOST]/$trial";
 
 echo <<<_HTML
 <!doctype html><html><head>
