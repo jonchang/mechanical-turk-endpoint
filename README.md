@@ -3,6 +3,16 @@ fake-mechanical-turk
 
 Acts like an Amazon Mechanical Turk endpoint but does some other neat stuff on top of that.
 
+Citation
+---------
+
+Code and data from this repository should be cited as:
+
+Chang, J. and Alfaro, M. E. (2015), Crowdsourced geometric morphometrics enable rapid large-scale collection and analysis of phenotypic data. Methods Ecol Evol, 7: 472–482. [doi:10.1111/2041-210X.12508](https://doi.org/10.1111/2041-210X.12508)
+
+Additional data is [available on Dryad (doi:10.5061/dryad.gh4k7)](https://doi.org/10.5061/dryad.gh4k7).
+
+
 Requirements
 ------------
 * PHP 5.4 compiled with SQLite support
