@@ -67,13 +67,16 @@ class SQLitePDO extends PDO {
 
         # Instantiate tables.
         try {
+            $this->exec('PRAGMA foreign_keys = ON;');
+            $this->exec('PRAGMA journal_mode = wal;');
             $this->beginTransaction();
-            $this->exec("CREATE TABLE IF NOT EXISTS plan (assignmentId TEXT PRIMARY KEY, trial TEXT, hitId TEXT, workerId TEXT, turkSubmitTo TEXT, max_sequence INTEGER, list BLOB);");
-            $this->exec("CREATE TABLE IF NOT EXISTS log (log_id INTEGER PRIMARY KEY, assignmentId TEXT NOT NULL, sequence INTEGER, type TEXT, result TEXT, timestamp TEXT, FOREIGN KEY(assignmentId) REFERENCES plan(assignmentId));");
+            $this->exec('CREATE TABLE IF NOT EXISTS hits (hitId TEXT PRIMARY KEY, count INTEGER NOT NULL, endpoint TEXT NOT NULL, parameters BLOB);');
+            $this->exec('CREATE TABLE IF NOT EXISTS assignments (assignmentId TEXT PRIMARY KEY, hitId TEXT NOT NULL, workerId TEXT NOT NULL, assigned_at TEXT DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY(hitId) REFERENCES hits(hitId));');
+            $this->exec('CREATE TABLE IF NOT EXISTS results (assignmentId TEXT NOT NULL, completed INTEGER, completed_at TEXT DEFAULT CURRENT_TIMESTAMP, result BLOB, FOREIGN KEY(assignmentId) REFERENCES assignments(assignmentId));');
             $this->commit();
         } catch (PDOException $e) {
             $this->rollBack();
-            die("Transaction failed: " . $e->getMessage());
+            die('Transaction failed: ' . $e->getMessage());
         }
     }
 
@@ -98,62 +101,58 @@ class SQLitePDO extends PDO {
     # Begin data manip functions
     # --------------------------
 
-    # Adds a plan to the plan table.
-    function add_plan($assignment, $trial, $hit, $worker, $submit, $plan) {
-        msg("adding plan for [$trial] $worker: $assignment");
+    # Adds a HIT to the hit table
+    function add_hit($hit, $count, $endpoint, $data) {
+        msg("adding plan: $assignment x $count @ $endpoint");
         $this->exec1(
-            'INSERT INTO plan(assignmentId, trial, hitId, workerId, turkSubmitTo, max_sequence, list) VALUES(?,?,?,?,?,?,?);',
-            array($assignment, $trial, $hit, $worker, $submit, count($plan), json_encode($plan))
+            'INSERT INTO hits(hitId, count, endpoint, parameters) VALUES(?,?,?,?);',
+            array($hit, $count, $endpoint, json_encode($data))
         );
     }
 
-    # Appends something to the log table.
-    function append_log($assignment, $sequence, $type, $result) {
-        $this->exec1(
-            'INSERT INTO log(assignmentId, sequence, type, result, timestamp) VALUES(?,?,?,?,datetime("now"));',
-            array($assignment, $sequence, $type, $result)
+    # For a given worker ID, tries to find assignments that haven't been
+    # completed for that worker
+    function get_incomplete_assignment($worker) {
+        $res = $this->exec1(
+            'SELECT assignments.assignmentId, assignments.assigned_at FROM assignments LEFT JOIN results USING (assignmentId) WHERE completed IS NULL;',
+            array(), PDO::FETCH_KEY_PAIR
         );
+        return $res;
+    }
+
+    # Fetches a random HIT that hasn't been completed and generates an
+    # assignment ID based on the worker. Returns the HIT and assignment
+    # IDs as an associative array.
+    function assign_work($worker) {
+        $res = $this->exec1(
+            'SELECT hitId, COUNT(assignments.assignmentId) AS cur_count FROM hits LEFT JOIN assignments USING (hitId) GROUP BY hitId HAVING cur_count < hits.count ORDER BY cur_count, RANDOM() LIMIT 5;',
+            array(), PDO::FETCH_KEY_PAIR);
+        $potential_hits = array_keys($res);
+        shuffle($potential_hits);
+        $hit = array_shift($potential_hits); # gets the first key
+        $assignment = sha1($worker . $hit);
+        var_dump($hit);
+        var_dump($assignment);
+        $this->exec1(
+            'INSERT INTO assignments (assignmentId, hitId, workerId) VALUES (?,?,?);',
+            array($assignment, $hit, $worker)
+        );
+        return array(hit => $hit, assignment => $assignment);
+    }
+
+    # Gets the number of hits in the table
+    function count_hits() {
+        $res = $this->exec1('SELECT COUNT(1) as count, COUNT(DISTINCT parameters) FROM hits;', array(), PDO::FETCH_NUM);
+        return array_shift($res);
     }
 
     # Appends a result to the log table.
-    function add_result($assignment, $result, $sequence) {
-        msg("adding result $assignment seq: $sequence");
-        $this->append_log($assignment, $sequence, 'completed', $result);
-    }
-
-    # Fetches the next sequence ID for a given assignment.
-    function next_sequence_id($assignment) {
-        msg('next_sequence_id called');
-        # Grab all completed sequence IDs.
-        $res = $this->exec1(
-            'SELECT DISTINCT sequence as cur FROM log WHERE assignmentId=? AND type="completed";',
-            array($assignment),
-            PDO::FETCH_COLUMN # get the first column
+    function add_result($assignment, $worker, $result) {
+        msg("adding result $assignment by $worker");
+        $this->exec1(
+            'INSERT INTO log(assignmentId, workerId, result, timestamp) VALUES(?,?,?,datetime("now"));',
+            array($assignment, $worker, $result)
         );
-
-        # Sort the sequence IDs low to high, then check for missing sequences.
-        sort($res, SORT_NUMERIC);
-        foreach ($res as $key => $value) {
-            msg("    Checking: $key, $value");
-            # Since sequence IDs always start at 0, any mismatch between the
-            # key and value of the array indicates an uncompleted task.
-            if ($key != $value) {
-                msg("    Next sequence ID for $assignment: " . $key + 1);
-                # Increment the current key and assign that as the next task.
-                return $key + 1;
-            }
-        }
-        msg("    Next sequence ID for $assignment: " . count($res));
-        # Otherwise, return the number of completed tasks as that will be the
-        # offset of the next sequence ID.
-        return count($res);
-    }
-
-    # Fetches the plan for a given assignment.
-    function get_plan($assignment) {
-        $res = $this->exec1('SELECT list FROM plan WHERE assignmentId=?', array($assignment), PDO::FETCH_NUM);
-        $res = array_shift($res); # should be only one plan
-        return json_decode($res[0]);
     }
 
     function get_assignment_info($assignment) {

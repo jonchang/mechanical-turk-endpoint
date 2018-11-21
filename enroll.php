@@ -2,29 +2,23 @@
 
 define('FAKE_MTURK', 1);
 require_once("functions.php");
-require_once("config.php");
 
 # Simple form to allow workers to specify their own worker IDs
 
-if (!isset($_GET['p'])) {
+$trial = preg_replace("/\W/", '', $_GET['p']);
+
+if (!$trial) {
     die("No trial set");
 }
 
-$path = $_GET['p'];
-$trial = preg_replace('/\/mturk\/externalSubmit$/', '', $path);
-$trial = preg_replace("/\W/", '', $trial);
+$db = new SQLitePDO(preg_replace("/\W/", '', $trial));
 
-if (!preg_match('/^\w+$/', $trial)) {
-    die('bad trial specified');
+$num_plans = $db->count_hits();
+if ($num_plans[0] <= 0) {
+    die('no plans in trial, please run setup');
 }
 
-if (!isset($trials[$trial])) {
-    die("trial doesn't exist in config");
-}
-
-$current = $trials[$trial];
-
-$url = "//$_SERVER[HTTP_HOST]/$trial";
+$url = "//$_SERVER[HTTP_HOST]/redirect.php?p=$trial";
 
 echo <<<_HTML
 <!doctype html><html><head>
@@ -32,9 +26,10 @@ echo <<<_HTML
 <style>body {font-size: 200%} input, button{font-size: 100%};</style>
 </head>
 <body>
-$trial experiment: Please enter your email address.
+$trial experiment: Please enter your email address (or other unique identifier).
 <form method="get" action="$url">
 <input type="text" name="workerId"></input>
+<input type="hidden" name="p" value="$trial">
 <input type="submit">
 </form>
 _HTML;
