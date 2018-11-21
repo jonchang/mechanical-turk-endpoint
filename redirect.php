@@ -11,22 +11,27 @@ $db = new SQLitePDO(preg_replace("/\W/", '', $trial));
 
 $res = $db->assign_work($worker);
 
-var_dump($res);
-exit();
+if (empty($res)) {
+    # all work already assigned
+    echo '<!doctype html><html><body>All work completed!';
+    exit();
+}
 
-$assignment = $res['assignmentId'];
-$hit = $res['hitId'];
+$assignment = $res['assignment'];
+$hit = $res['hit'];
+
+$res = $db->get_hit_info($hit);
+
 $endpoint = $res['endpoint'];
-$payload = $res['list'];
+$payload = $res['parameters'];
 
 # Bail out if for some reason the input file has an assignmentId or a hitId as a parameter!
-if (array_key_exists('hitId', $payload) or array_key_exists('assignmentId', $payload) or array_key_exists('workerId', $payload)) {
+if (array_key_exists('hitId', $payload) or array_key_exists('assignmentId', $payload) or array_key_exists('turkSubmitTo', $payload)) {
     die('duplicate hit or assignment array key in json payload');
 }
 
 # Load up the http query payload
 $payload['assignmentId'] = $assignment;
-$payload['workerId'] = $worker;
 $payload['hitId'] = $hit;
 $payload['turkSubmitTo'] = "http://$_SERVER[HTTP_HOST]/submit.php?p=$trial";
 

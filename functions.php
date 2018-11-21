@@ -103,7 +103,7 @@ class SQLitePDO extends PDO {
 
     # Adds a HIT to the hit table
     function add_hit($hit, $count, $endpoint, $data) {
-        msg("adding plan: $assignment x $count @ $endpoint");
+        msg("adding plan: $hit x $count @ $endpoint");
         $this->exec1(
             'INSERT INTO hits(hitId, count, endpoint, parameters) VALUES(?,?,?,?);',
             array($hit, $count, $endpoint, json_encode($data))
@@ -114,30 +114,53 @@ class SQLitePDO extends PDO {
     # completed for that worker
     function get_incomplete_assignment($worker) {
         $res = $this->exec1(
-            'SELECT assignments.assignmentId, assignments.assigned_at FROM assignments LEFT JOIN results USING (assignmentId) WHERE completed IS NULL;',
-            array(), PDO::FETCH_KEY_PAIR
+            'SELECT assignments.assignmentId, assignments.hitId, assignments.assigned_at FROM assignments LEFT JOIN results USING (assignmentId) WHERE completed IS NULL LIMIT 1;',
+            array(), PDO::FETCH_NUM
         );
-        return $res;
+        if (empty($res)) {
+            return $res;
+        }
+        $res = array_shift($res); # should only be one result
+        return array(hit => $res[1], assignment => $res[0], timestamp => $res[2]);
     }
 
     # Fetches a random HIT that hasn't been completed and generates an
     # assignment ID based on the worker. Returns the HIT and assignment
     # IDs as an associative array.
     function assign_work($worker) {
+        $res = $this->get_incomplete_assignment($worker);
+        if (!empty($res)) {
+            msg('found incomplete assignment ' . $assignment);
+            return array(hit => $res['hit'], assignment => $res['assignment']);
+        }
         $res = $this->exec1(
-            'SELECT hitId, COUNT(assignments.assignmentId) AS cur_count FROM hits LEFT JOIN assignments USING (hitId) GROUP BY hitId HAVING cur_count < hits.count ORDER BY cur_count, RANDOM() LIMIT 5;',
-            array(), PDO::FETCH_KEY_PAIR);
+            'SELECT hitId, COUNT(results.assignmentId) AS cur_count FROM hits LEFT JOIN assignments USING (hitId) INNER JOIN results USING (assignmentId) GROUP BY hitId HAVING cur_count < hits.count AND hitId NOT IN (SELECT hitId FROM assignments WHERE workerId = ?) ORDER BY cur_count, RANDOM() LIMIT 5;',
+            array($worker), PDO::FETCH_KEY_PAIR);
+        if (empty($res)) {
+            # No valid hits left to complete!
+            return array();
+        }
         $potential_hits = array_keys($res);
         shuffle($potential_hits);
         $hit = array_shift($potential_hits); # gets the first key
         $assignment = sha1($worker . $hit);
-        var_dump($hit);
-        var_dump($assignment);
         $this->exec1(
             'INSERT INTO assignments (assignmentId, hitId, workerId) VALUES (?,?,?);',
             array($assignment, $hit, $worker)
         );
         return array(hit => $hit, assignment => $assignment);
+    }
+
+    function get_hit_info($hit) {
+        $res = $this->exec1('SELECT count, endpoint, parameters FROM hits WHERE hitId = ?', array($hit), PDO::FETCH_ASSOC);
+        $res = array_shift($res);
+        $res['parameters'] = json_decode($res['parameters'], true);
+        return $res;
+    }
+
+    function get_assigned_worker($assignment) {
+        $res = $this->exec1('SELECT workerId from assignments WHERE assignmentId = ?', array($assignment), PDO::FETCH_COLUMN);
+        return array_shift($res);
     }
 
     # Gets the number of hits in the table
@@ -147,11 +170,11 @@ class SQLitePDO extends PDO {
     }
 
     # Appends a result to the log table.
-    function add_result($assignment, $worker, $result) {
-        msg("adding result $assignment by $worker");
+    function add_result($assignment, $result) {
+        msg("adding result $assignment");
         $this->exec1(
-            'INSERT INTO log(assignmentId, workerId, result, timestamp) VALUES(?,?,?,datetime("now"));',
-            array($assignment, $worker, $result)
+            'INSERT INTO results(assignmentId, completed, result) VALUES(?,?,?);',
+            array($assignment, 1, $result)
         );
     }
 
