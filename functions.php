@@ -134,7 +134,7 @@ class SQLitePDO extends PDO {
             return array(hit => $res['hit'], assignment => $res['assignment']);
         }
         $res = $this->exec1(
-            'SELECT hitId, COUNT(results.assignmentId) AS cur_count FROM hits LEFT JOIN assignments USING (hitId) INNER JOIN results USING (assignmentId) GROUP BY hitId HAVING cur_count < hits.count AND hitId NOT IN (SELECT hitId FROM assignments WHERE workerId = ?) ORDER BY cur_count, RANDOM() LIMIT 5;',
+            'SELECT hitId, COUNT(results.assignmentId) AS cur_count FROM hits LEFT JOIN assignments USING (hitId) LEFT JOIN results USING (assignmentId) GROUP BY hitId HAVING cur_count < hits.count AND hitId NOT IN (SELECT hitId FROM assignments WHERE workerId = ?) ORDER BY cur_count, RANDOM() LIMIT 5;',
             array($worker), PDO::FETCH_KEY_PAIR);
         if (empty($res)) {
             # No valid hits left to complete!

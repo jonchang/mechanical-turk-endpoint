@@ -33,7 +33,7 @@ if (array_key_exists('hitId', $payload) or array_key_exists('assignmentId', $pay
 # Load up the http query payload
 $payload['assignmentId'] = $assignment;
 $payload['hitId'] = $hit;
-$payload['turkSubmitTo'] = "http://$_SERVER[HTTP_HOST]/submit.php?p=$trial";
+$payload['turkSubmitTo'] = "https://$_SERVER[HTTP_HOST]/submit.php?p=$trial";
 
 $url = $endpoint . '?' . http_build_query($payload);
 

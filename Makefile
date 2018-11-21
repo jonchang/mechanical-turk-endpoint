@@ -3,7 +3,7 @@ SHELL := /bin/bash
 
 DEFAULT = help
 
-DEPLOY_FILES = .htaccess *.php *.input *.json
+DEPLOY_FILES = .htaccess *.php *.input *.json *.html
 
 all:
 	$(MAKE) $(DEFAULT)
