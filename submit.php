@@ -19,9 +19,7 @@ $db->add_result($assignment, $result);
 $worker = $db->get_assigned_worker($assignment);
 
 if (empty($worker)) {
-    var_dump($_GET);
-    var_dump($_POST);
-    die("something went wrong");
+    die "Couldn't find matching worker ID for assignment ID = $assignment>. Your result has been recorded but please contact the organizer with this assignment number.";
 }
 
 header("Location: redirect.php?p=$trial&workerId=$worker", true, 303);
