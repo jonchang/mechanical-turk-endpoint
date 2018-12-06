@@ -183,19 +183,18 @@ class SQLitePDO extends PDO {
         return (array) array_shift($res);
     }
 
-    function get_all_results($assignment) {
-        $plan = $this->get_plan($assignment);
-        $res = $this->exec1('SELECT sequence, result FROM log WHERE assignmentId = ? AND type="completed"', array($assignment), PDO::FETCH_ASSOC);
+    function get_all_results() {
+        $result = $this->exec1('select assignmentId, workerId, parameters, result from results left join assignments using (assignmentId) left join hits using (hitId) where completed = 1;', array(), PDO::FETCH_ASSOC);
         $ret = array();
-        foreach ($res as $key => $value) {
-            $ret[] = array(
-                "sequence" => $value['sequence'],
-                "result" => $value['result'],
-                "plan" => $plan[$value['sequence']]
-            );
+        foreach ($result as $row) {
+            $parms = json_decode($row["parameters"], true);
+            $output = json_decode($row["result"], true);
+            $marks = json_decode($output["marks"], true);
+            $ret[] = array('url' => $parms["url"], 'marks' => $marks, 'assignment' => $row["assignmentId"], 'worker' => $row["workerId"]);
         }
-        return json_encode($ret);
+        return $ret;
     }
+
 }
 
 ?>
