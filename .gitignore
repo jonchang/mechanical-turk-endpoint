@@ -2,5 +2,7 @@ rsync_target
 config.php
 log.txt
 *.sqlite
+*.sqlite-shm
+*.sqlite-wal
 *.input
 *.json
